@@ -1,0 +1,9 @@
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: zephon-k8s-network
+spec:
+  cidr: "{{ calico_ipv4_pool[env_name] }}"
+  ipipMode: CrossSubnet
+  natOutgoing: true
+  disabled: false

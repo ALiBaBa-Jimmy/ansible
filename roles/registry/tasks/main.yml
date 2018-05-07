@@ -1,0 +1,58 @@
+- name: Stop docker-engine
+  systemd:
+    name: docker
+    state: stopped
+  ignore_errors: yes
+
+- name: Disable docker-engine start on boot
+  systemd:
+    name: docker
+    enabled: no
+  ignore_errors: yes
+
+- name: Remove remaining docker controller
+  file:
+    state: absent
+    path: "/etc/systemd/system/multi-user.target.wants/docker.service"
+  ignore_errors: yes
+
+- name: Remove old version of Docker
+  yum:
+    name:
+      - docker
+      - docker-common
+      - docker-selinux
+      - docker-engine
+    state: removed
+
+- name: Create data directory for docker
+  file:
+    state: directory
+    path: "/export/Data/docker"
+    mode: 0700
+
+- name: Install Docker SELinux for expect version
+  yum:
+    name: "{{ docker_ce_selinux_installer_path }}"
+    state: present
+
+- name: Install Docker Engine for expect version
+  yum:
+    name: "{{ docker_engine_installer_path }}"
+    state: present
+
+- name: Modify docker's start script to adapte private registry
+  raw: sed -E -i 's/^ExecStart.*$/ExecStart=\/usr\/bin\/dockerd --bip 10.0.0.1\/24 --insecure-registry mirror.jd.com --insecure-registry mirror.jd.local --insecure-registry http:\/\/10.194.43.66 --data-root=\/export\/Data\/docker --storage-driver=overlay2/g' /usr/lib/systemd/system/docker.service
+  args:
+    executable: /bin/bash
+
+- name: Enable docker-engine start on boot
+  systemd:
+    name: docker
+    enabled: yes
+    daemon_reload: yes
+
+- name: Start docker-engine
+  systemd:
+    name: docker
+    state: started

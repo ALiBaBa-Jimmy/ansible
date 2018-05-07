@@ -1,0 +1,58 @@
+- name: Install sudo if it not installed
+  yum:
+    name: sudo
+    state: latest
+
+- name: Add user group
+  group: name={{ user_group }} system=yes gid=600
+  sudo: True
+
+- name: Add sudoer group
+  group: name={{ sudoer_group }} system=yes gid=10
+  sudo: True
+
+- name: Create user admin and add to user group
+  user:
+    name: admin
+    group: admin
+    createhome: yes
+
+- name: Setup authorized_keys for user admin
+  authorized_key:
+    user: admin
+    key: "{{ all_users['admin'] }}"
+    manage_dir: yes
+
+- name: Setup authorized_keys for user root
+  authorized_key:
+    user: root
+    key: "{{ all_users['root'] }}"
+    manage_dir: yes
+
+- name: Create users, setup passwords and authorized_keys
+  include: user.yml
+  with_items: "{{ users }}"
+  sudo: True
+
+- name: Create sudoers file if it not exist
+  file:
+    path: /etc/sudoers
+    state: touch
+    mode: 0440
+
+- name: Add sudoers to sudoer group
+  user:
+    name={{ item }}
+    groups={{ sudoer_group }}
+    append=yes
+  with_items: "{{ sudoers }}"
+  sudo: True
+
+- name: Setup sudoers file
+  lineinfile:
+    dest=/etc/sudoers
+    state=present
+    regexp='^\s*%{{ sudoer_group }}'
+    line='%{{ sudoer_group }} ALL=(ALL) NOPASSWD:ALL'
+    validate='/usr/sbin/visudo -cf %s'
+  sudo: True

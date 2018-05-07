@@ -1,0 +1,4 @@
+---
+- import_tasks: calico-node.yml
+
+- import_tasks: calico-cni-plugin.yml

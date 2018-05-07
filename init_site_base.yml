@@ -1,0 +1,9 @@
+---
+
+- hosts: "*"
+  remote_user: root
+  gather_facts: False
+  roles:
+    - motd
+    - selinux
+    - users

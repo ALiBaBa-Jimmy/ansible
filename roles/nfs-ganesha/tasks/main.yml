@@ -1,0 +1,15 @@
+---
+- name: Set nfs-ganesha's configuration
+  template:
+    src: ganesha.conf
+    dest: "/etc/ganesha/"
+
+- name: Set nfs-ganesha auto-run
+  systemd:
+    name: nfs-ganesha
+    enabled: yes
+
+- name: Restart nfs-ganesha
+  systemd:
+    name: nfs-ganesha
+    state: restarted

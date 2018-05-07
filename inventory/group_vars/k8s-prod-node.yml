@@ -1,0 +1,10 @@
+---
+
+motd_banner: |
+  Zephon Cloud - Kubernetes Node for Production Environment
+
+users:
+  - zhaozhiyong5
+
+sudoers:
+  - zhaozhiyong5

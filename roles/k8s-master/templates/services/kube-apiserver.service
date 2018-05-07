@@ -1,0 +1,33 @@
+[Unit]
+Description=kube-apiserver: The Kubernetes API Server
+Documentation=http://kubernetes.io/docs/
+After=docker
+
+[Service]
+WorkingDirectory={{ kubernetes_dir_symlink }}
+EnvironmentFile={{ kubernetes_dir_symlink }}/etc/config
+EnvironmentFile={{ kubernetes_dir_symlink }}/etc/apiserver
+ExecStart={{ kubernetes_dir_symlink }}/bin/kube-apiserver \
+    --feature-gates=DevicePlugins=true,CustomPodDNS=true,PersistentLocalVolumes=true,VolumeScheduling=true,MountPropagation=true,PVCProtection=true,ExpandPersistentVolumes=true \
+    --service-account-key-file={{ kubernetes_dir_symlink }}/etc/service_account_key.pem \
+    --client-ca-file={{ kubernetes_dir_symlink }}/etc/ca.crt \
+    --tls-cert-file={{ kubernetes_dir_symlink }}/etc/server.crt \
+    --tls-private-key-file={{ kubernetes_dir_symlink }}/etc/server.key \
+    $KUBE_LOGTOSTDERR \
+    $KUBE_LOG_LEVEL \
+    $KUBE_ALLOW_PRIV \
+    $KUBE_ETCD_SERVERS \
+    $KUBE_API_INSECURE_ADDRESS \
+    $KUBE_API_INSECURE_PORT \
+    $KUBELET_PORT \
+    $KUBE_SERVICE_ADDRESSES \
+    $KUBE_ADMISSION_CONTROL \
+    $BASIC_AUTH_FILE \
+    $TOKEN_AUTH_FILE \
+    $KUBE_API_ARGS
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

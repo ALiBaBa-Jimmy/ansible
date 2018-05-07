@@ -1,0 +1,25 @@
+- name: Add elrepo
+  get_url:
+    url: "{{ elrepo_download_url }}"
+    dest: "/etc/yum.repos.d"
+    checksum: md5:76d19517f469d1a37cb9df1b8a5a41ba
+
+- name: Install linux kernel's latest mainline version
+  yum:
+    name: kernel-ml
+    enablerepo: elrepo-kernel
+    state: latest
+
+- name: Install linux kernel-devel's latest mainline version
+  yum:
+    name: kernel-ml-devel
+    enablerepo: elrepo-kernel
+    state: latest
+
+- name: Use latest kernel as default
+  shell: "grub2-set-default 0"
+
+- name: Reboot
+  shell: sleep 2s && shutdown -r now "System reboot for enable latest kernel"
+  async: 1
+  poll: 0

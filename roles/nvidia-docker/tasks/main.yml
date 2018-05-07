@@ -1,0 +1,34 @@
+- name: Install repository file for nvidia-container-runtime
+  get_url:
+    url: "{{ nvidia_container_runtime_repo }}"
+    dest: "/etc/yum.repos.d/"
+    mode: 0644
+    checksum: md5:ed4e8ac8226eab26a3017748299e7339
+
+- name: Install repository file for nvidia-docker
+  get_url:
+    url: "{{ nvidia_docker_repo }}"
+    dest: "/etc/yum.repos.d/"
+    mode: 0644
+    checksum: md5:ec07ecf0f40f22e8ba68937630e3d906
+
+- name: Install nvidia-container-runtime
+  yum:
+    name: "nvidia-container-runtime"
+    state: latest
+
+- name: Install nvidia-docker2
+  yum:
+    name: "nvidia-docker2"
+    state: latest
+
+- name: Modify docker's start script to enable nvidia runtime for docker
+  raw: sed -E -i 's/^ExecStart.*overlay2$/& --default-runtime=nvidia/g' /usr/lib/systemd/system/docker.service
+  args:
+    executable: /bin/bash
+
+- name: Restart docker
+  systemd:
+    name: "docker"
+    state: restarted
+    daemon_reload: yes

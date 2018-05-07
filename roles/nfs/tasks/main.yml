@@ -1,0 +1,15 @@
+- name: Install nfs-utils from remote yum repository
+  yum:
+    name: nfs-utils
+    state: latest
+
+- name: Enable nfs service start on boot
+  systemd:
+    name: nfs-server
+    enabled: yes
+    daemon_reload: yes
+
+- name: Start nfs-server
+  systemd:
+    name: nfs-server
+    state: restarted

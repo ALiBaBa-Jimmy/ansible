@@ -1,0 +1,10 @@
+---
+
+motd_banner: |
+  GPU Off-Line Experiment Server
+
+users:
+  - zhaozhiyong5
+
+sudoers:
+  - zhaozhiyong5

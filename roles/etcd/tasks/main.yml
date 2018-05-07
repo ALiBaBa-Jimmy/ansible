@@ -1,0 +1,82 @@
+---
+- name: Install ETCD
+  yum:
+    name: "etcd"
+    state: latest
+
+- name: Set ETCD cluster name
+  lineinfile:
+    path: /etc/etcd/etcd.conf
+    state: present
+    regexp: '^[#]?ETCD_NAME'
+    line: 'ETCD_NAME="etcd-{{ inventory_hostname }}"'
+
+- name: Add listen client urls for all cluster nodes to config file
+  lineinfile:
+    path: /etc/etcd/etcd.conf
+    state: present
+    regexp: '^[#]?ETCD_LISTEN_CLIENT_URLS'
+    line: 'ETCD_LISTEN_CLIENT_URLS="http://{{ inventory_hostname }}:2379,http://127.0.0.1:2379"'
+
+- name: Add advertise urls for all cluster nodes to config file
+  lineinfile:
+    path: /etc/etcd/etcd.conf
+    state: present
+    regexp: '^[#]?ETCD_ADVERTISE_CLIENT_URLS'
+    line: 'ETCD_ADVERTISE_CLIENT_URLS="http://{{ inventory_hostname }}:2379"'
+
+- name: Set initial cluster
+  lineinfile:
+    path: /etc/etcd/etcd.conf
+    state: present
+    regexp: '^[#]?ETCD_INITIAL_CLUSTER'
+    line: 'ETCD_INITIAL_CLUSTER="{{ etcd_initial_cluster[env_name] }}"'
+
+- name: Set listen peer urls
+  lineinfile:
+    path: /etc/etcd/etcd.conf
+    state: present
+    regexp: '^[#]?ETCD_LISTEN_PEER_URLS'
+    line: 'ETCD_LISTEN_PEER_URLS="http://{{ inventory_hostname }}:2380"'
+
+- name: Set initial advertise peer urls
+  lineinfile:
+    path: /etc/etcd/etcd.conf
+    state: present
+    regexp: '^[#]?ETCD_INITIAL_ADVERTISE_PEER_URLS'
+    line: 'ETCD_INITIAL_ADVERTISE_PEER_URLS="http://{{ inventory_hostname }}:2380"'
+
+- name: Set initial cluster state
+  lineinfile:
+    path: /etc/etcd/etcd.conf
+    state: present
+    regexp: '^[#]?ETCD_INITIAL_CLUSTER_STATE'
+    line: 'ETCD_INITIAL_CLUSTER_STATE="new"'
+
+- name: Create director for etcd data storage
+  file:
+    path: "{{ etcd_data_dir }}"
+    state: directory
+    owner: etcd
+    group: etcd
+    mode: 0700
+
+- name: Set etcd storage director
+  lineinfile:
+    path: /etc/etcd/etcd.conf
+    state: present
+    regexp: '^[#]?ETCD_DATA_DIR'
+    line: 'ETCD_DATA_DIR="{{ etcd_data_dir }}"'
+
+- name: Reload systemd config
+  systemd: daemon_reload=yes
+
+- name: Auto-Run ETCD
+  systemd:
+    name: etcd
+    enabled: yes
+
+- name: Start ETCD
+  systemd:
+    name: etcd
+    state: restarted

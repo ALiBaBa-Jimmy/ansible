@@ -1,0 +1,23 @@
+[Unit]
+Description=kube-scheduler: The Kubernetes Scheduler
+Documentation=http://kubernetes.io/docs/
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+WorkingDirectory={{ kubernetes_dir_symlink }}
+EnvironmentFile={{ kubernetes_dir_symlink }}/etc/config
+EnvironmentFile={{ kubernetes_dir_symlink }}/etc/scheduler
+ExecStart={{ kubernetes_dir_symlink }}/bin/kube-scheduler \
+    --feature-gates=DevicePlugins=true,PersistentLocalVolumes=true,VolumeScheduling=true,MountPropagation=true,PVCProtection=true,ExpandPersistentVolumes=true \
+    $KUBE_LOGTOSTDERR \
+    $KUBE_LOG_LEVEL \
+    $KUBE_MASTER \
+    $KUBE_SCHEDULER_ARGS
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

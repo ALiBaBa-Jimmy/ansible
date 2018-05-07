@@ -1,0 +1,53 @@
+- name: Delete glusterfs rpms
+  file:
+    path: "{{ gluster_rpms_local_dir }}"
+    state: absent
+
+- name: Create directory for glusterfs installer rpms
+  file:
+    path: "{{ gluster_rpms_local_dir }}"
+    state: directory
+    recurse: yes
+
+- name: Download package for glusterfs and its dependancies
+  unarchive:
+    src: "{{ gluster_rpms_package }}"
+    dest: "{{ gluster_rpms_local_dir }}"
+    remote_src: yes
+
+- name: Install glusterfs from downloaded rpms
+  shell: "yum localinstall -y {{ gluster_rpms_local_dir }}/glusterfs-{{ gluster_version }}/*"
+
+- name: Create directories for Docker Persistent Layer
+  file:
+    path: "{{ volume_base_dir }}/dpv0"
+    state: directory
+    mode: 0700
+
+- name: Create directories for Global Persistent Layer
+  file:
+    path: "{{ volume_base_dir }}/gpv0"
+    state: directory
+    mode: 0700
+
+- name: Create directories for test volume
+  file:
+    path: "{{ volume_base_dir }}/tv0"
+    state: directory
+    mode: 0700
+
+- name: Enable glusterfs-daemon start on boot
+  systemd:
+    name: glusterd
+    enabled: yes
+    daemon_reload: yes
+
+- name: Start glusterfs-daemon
+  systemd:
+    name: glusterd
+    state: restarted
+
+- name: Delete glusterfs rpms
+  file:
+    path: "{{ gluster_rpms_local_dir }}"
+    state: absent

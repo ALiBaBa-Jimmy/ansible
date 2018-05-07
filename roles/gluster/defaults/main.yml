@@ -1,0 +1,5 @@
+---
+gluster_rpms_package: http://storage.jd.local/cluster-deps/glusterfs-3.10.11.tar.gz
+gluster_rpms_local_dir: /tmp/gluster-rpms
+gluster_version: 3.10.11
+volume_base_dir: /export/Data/gluster/brick1

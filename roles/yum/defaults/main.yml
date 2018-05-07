@@ -1,0 +1,3 @@
+---
+centos_internal_repo_file: http://storage.jd.local/cluster-deps/CentOS-JD.repo
+repository_dir: /etc/yum.repos.d

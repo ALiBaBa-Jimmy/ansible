@@ -1,0 +1,15 @@
+- stat: path=/etc/selinux/config
+  register: selinux_config
+
+- name: Switch selinux to Permissive if it is Enforcing
+  shell: "[ $(/usr/sbin/getenforce) != Enforcing ] || sudo /usr/sbin/setenforce 0"
+  when: selinux_config.stat.exists == True
+
+- name: Turn off selinux for next boot
+  lineinfile:
+    dest=/etc/selinux/config
+    state=present
+    regexp='^SELINUX=enforcing'
+    line='SELINUX=disabled'
+  when: selinux_config.stat.exists == True
+  sudo: True

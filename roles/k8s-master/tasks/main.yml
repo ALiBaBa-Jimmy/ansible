@@ -1,0 +1,393 @@
+---
+- name: Delete previous kube-controller
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/calico-kube-controllers.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous nvidia daemonset
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/nvidia-gpu-daemonset.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous ingress controller
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/ingress-nginx/ingress-controller.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous ingress default backend
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/ingress-nginx/default-backend.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous ingress udp service configmap
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/ingress-nginx/udp-services-configmap.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous ingress tcp service configmap
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/ingress-nginx/tcp-services-configmap.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous ingress global configmap
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/ingress-nginx/configmap.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous ingress namespace
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/ingress-nginx/namespace.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous kube-dns service
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/kube-dns/kube-dns-service.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous kube-dns deployment
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/kube-dns/kube-dns-deployment.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous kube-dns service account
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/kube-dns/kube-dns-service-account.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Delete previous kube-dns configmap
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl delete -f {{ kubernetes_configure_dir }}/kube-dns/kube-dns-configmap.yaml --force --grace-period=0"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Stop kubernetes apiserver
+  systemd:
+    name: kube-apiserver
+    state: stopped
+  ignore_errors: yes
+
+- name: Disable kubernetes apiserver
+  systemd:
+    name: kube-apiserver
+    enabled: no
+  ignore_errors: yes
+
+- name: Remove kube-apiserver.service
+  file:
+    path: /usr/lib/systemd/system/kube-apiserver.service
+    state: absent
+
+- name: Stop kubernetes controller manager
+  systemd:
+    name: kube-controller-manager
+    state: stopped
+  ignore_errors: yes
+
+- name: Disable kubernetes controller manager
+  systemd:
+    name: kube-controller-manager
+    enabled: no
+  ignore_errors: yes
+
+- name: Remove kube-controller-manager.service
+  file:
+    path: /usr/lib/systemd/system/kube-controller-manager.service
+    state: absent
+
+- name: Stop kubernetes scheduler
+  systemd:
+    name: kube-scheduler
+    state: stopped
+  ignore_errors: yes
+
+- name: Disable kubernetes scheduler
+  systemd:
+    name: kube-scheduler
+    enabled: no
+  ignore_errors: yes
+
+- name: Remove kube-scheduler.service
+  file:
+    path: /usr/lib/systemd/system/kube-scheduler.service
+    state: absent
+
+- name: Remove symlink to kubernetes-server installed directory
+  file:
+    path: "{{ kubernetes_dir_symlink }}"
+    state: absent
+
+- name: Remove kubernetes-server installed directory
+  file:
+    path: "{{ kubernetes_dir }}"
+    state: absent
+
+- name: Unarchive kubernetes-server to target directory
+  unarchive:
+    src: "{{ kubernetes_url }}"
+    dest: "{{ kubernetes_install_base_dir }}"
+    remote_src: yes
+
+- name: Create symlink for kubernetes-server installed directory
+  file:
+    src: "{{ kubernetes_dir }}"
+    dest: "{{ kubernetes_dir_symlink }}"
+    state: link
+
+- name: Create configure directory
+  file:
+    path: "{{ kubernetes_configure_dir }}"
+    state: directory
+    mode: 0700
+
+- name: Create nginx ingress configure directory
+  file:
+    path: "{{ kubernetes_configure_dir }}/ingress-nginx"
+    state: directory
+    mode: 0700
+  tags:
+    - manifests
+
+- name: Create kube-dns configure directory
+  file:
+    path: "{{ kubernetes_configure_dir }}/kube-dns"
+    state: directory
+    mode: 0700
+  tags:
+    - manifests
+
+- name: Create common configure file from template
+  template:
+    src: configs/config
+    dest: "{{ kubernetes_configure_dir }}"
+
+- name: Create apiserver configure file from template
+  template:
+    src: configs/apiserver
+    dest: "{{ kubernetes_configure_dir }}"
+
+- name: Create controller-manager configure file from template
+  template:
+    src: configs/controller-manager
+    dest: "{{ kubernetes_configure_dir }}"
+
+- name: Create scheduler configure file from template
+  template:
+    src: configs/scheduler
+    dest: "{{ kubernetes_configure_dir }}"
+
+- name: Create ServiceAccount key
+  template:
+    src: auth/service_account_key.pem
+    dest: "{{ kubernetes_configure_dir }}/service_account_key.pem"
+
+- name: Create CA Cert
+  template:
+    src: auth/ca.crt
+    dest: "{{ kubernetes_configure_dir }}/ca.crt"
+
+- name: Create Server Cert
+  template:
+    src: auth/server.crt
+    dest: "{{ kubernetes_configure_dir }}/server.crt"
+
+- name: Create Server Key
+  template:
+    src: auth/server.key
+    dest: "{{ kubernetes_configure_dir }}/server.key"
+
+- name: Create ServiceAccount Cert
+  template:
+    src: auth/service_account_cert.pem
+    dest: "{{ kubernetes_configure_dir }}/service_account_cert.pem"
+
+- name: Create password tab from template
+  template:
+    src: auth/password-tab
+    dest: "{{ kubernetes_master_password_tab_path }}"
+
+- name: Create token tab from template
+  template:
+    src: auth/token-tab
+    dest: "{{ kubernetes_master_token_tab_path }}"
+
+- name: Create kube-apiserver.service for systemd from template
+  template:
+    src: services/kube-apiserver.service
+    dest: /usr/lib/systemd/system/kube-apiserver.service
+
+- name: Create kube-controller-manager.service for systemd from template
+  template:
+    src: services/kube-controller-manager.service
+    dest: /usr/lib/systemd/system/kube-controller-manager.service
+
+- name: Create kube-scheduler.service for systemd from template
+  template:
+    src: services/kube-scheduler.service
+    dest: /usr/lib/systemd/system/kube-scheduler.service
+
+- name: Systemd reload
+  systemd:
+    daemon_reload: yes
+
+- name: Enable kube-apiserver
+  systemd:
+    name: kube-apiserver
+    enabled: yes
+
+- name: Enable kube-controller-manager
+  systemd:
+    name: kube-controller-manager
+    enabled: yes
+
+- name: Enable kube-scheduler
+  systemd:
+    name: kube-scheduler
+    enabled: yes
+
+- name: Start kube-apiserver
+  systemd:
+    name: kube-apiserver
+    state: started
+
+- name: Start kube-controller-manager
+  systemd:
+    name: kube-controller-manager
+    state: started
+
+- name: Start kube-scheduler
+  systemd:
+    name: kube-scheduler
+    state: started
+
+- name: Create manifest file for kube-controller
+  hosts: group_name[0]
+  template:
+    src: manifests/calico-kube-controllers.yaml
+    dest: "{{ kubernetes_configure_dir }}/"
+
+- name: Create manifest file for GPU support
+  hosts: group_name[0]
+  template:
+    src: manifests/nvidia-gpu-daemonset.yaml
+    dest: "{{ kubernetes_configure_dir }}/"
+
+- name: Create manifest file for nginx ingress
+  hosts: group_name[0]
+  template:
+    src: "{{ item }}"
+    dest: "{{ kubernetes_configure_dir }}/ingress-nginx/"
+  with_fileglob:
+    - ../templates/manifests/ingress-nginx/*.yaml
+
+- name: Create manifest file for kube-dns
+  hosts: group_name[0]
+  template:
+    src: "{{ item }}"
+    dest: "{{ kubernetes_configure_dir }}/kube-dns/"
+  with_fileglob:
+    - ../templates/manifests/kube-dns/*.yaml
+
+- name: Create kube-controller pod
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/calico-kube-controllers.yaml"
+  tags:
+    - manifests
+
+- name: Create nvidia daemonset
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/nvidia-gpu-daemonset.yaml"
+  tags:
+    - manifests
+
+- name: Create nginx ingress namespace
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/ingress-nginx/namespace.yaml"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Create nginx ingress default backend
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/ingress-nginx/default-backend.yaml"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Create nginx ingress global configmap
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/ingress-nginx/configmap.yaml"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Create nginx ingress tcp service configmap
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/ingress-nginx/tcp-services-configmap.yaml"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Create nginx ingress udp service configmap
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/ingress-nginx/udp-services-configmap.yaml"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Create nginx ingress controller
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/ingress-nginx/ingress-controller.yaml"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Create nginx kube-dns service
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/kube-dns/kube-dns-service.yaml"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Create nginx kube-dns service account
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/kube-dns/kube-dns-service-account.yaml"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Create nginx kube-dns configmap
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/kube-dns/kube-dns-configmap.yaml"
+  ignore_errors: yes
+  tags:
+    - manifests
+
+- name: Create nginx kube-dns deployment
+  hosts: group_name[0]
+  raw: "{{ kubernetes_binary_dir }}/kubectl create -f {{ kubernetes_configure_dir }}/kube-dns/kube-dns-deployment.yaml"
+  ignore_errors: yes
+  tags:
+    - manifests

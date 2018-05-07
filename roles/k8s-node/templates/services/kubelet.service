@@ -1,0 +1,32 @@
+[Unit]
+Description=Kubernetes Kubelet Server
+Documentation=http://kubernetes.io/docs/
+After=docker.service
+Requires=docker.service
+
+[Service]
+WorkingDirectory={{ kubernetes_dir_symlink }}
+EnvironmentFile={{ kubernetes_dir_symlink }}/etc/config
+EnvironmentFile={{ kubernetes_dir_symlink }}/etc/kubelet
+ExecStart={{ kubernetes_dir_symlink }}/bin/kubelet \
+        --network-plugin=cni \
+        --cni-conf-dir={{ cni_etc_net_dir }} \
+        --cni-bin-dir={{ cni_bin_dir }} \
+        --fail-swap-on=false \
+        --pod-infra-container-image={{ pod_infra_container_image }} \
+        --feature-gates=DevicePlugins=true,CustomPodDNS=true,PersistentLocalVolumes=true,VolumeScheduling=true,MountPropagation=true,PVCProtection=true,ExpandPersistentVolumes=true \
+        --cluster-dns={{ cluster_dns[env_name] }} \
+        --cluster-domain={{ cluster_domain[env_name] }} \
+        $KUBE_LOGTOSTDERR \
+        $KUBE_LOG_LEVEL \
+        $KUBE_ALLOW_PRIV \
+        $KUBELET_KUBECONFIG_FILE \
+        $KUBELET_ADDRESS \
+        $KUBELET_PORT \
+        $KUBELET_HOSTNAME \
+        $KUBELET_ARGS
+Restart=on-failure
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

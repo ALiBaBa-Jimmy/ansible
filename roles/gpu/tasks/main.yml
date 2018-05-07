@@ -1,0 +1,55 @@
+---
+
+- name: Disable nouveau driver
+  raw: "echo 'blacklist nouveau' > /etc/modprobe.d/blacklist-nouveau.conf && echo 'options nouveau modeset=0' >> /etc/modprobe.d/blacklist-nouveau.conf && dracut --force"
+  args:
+    executable: /bin/bash
+
+- name: Reboot
+  shell: sleep 2s && shutdown -r now "System reboot for disable nouveau"
+  async: 1
+  poll: 0
+
+- name: Wait ten minutes for server to come back
+  local_action:
+    module: wait_for
+      host={{ inventory_hostname }}
+      port=22
+      state=started
+      delay=10
+      timeout=600
+
+- name: Install dkms
+  yum:
+    name: "{{ dkms_installer }}"
+    state: present
+
+- name: Download nvidia-driver-installer
+  get_url:
+    url: "{{ nvidia_installer_script }}"
+    dest: "/export/nvidia-driver-installer"
+    mode: 0755
+    checksum: md5:41456a83e39bf0088c30247cd1536559
+
+- name: Download cuda-toolkit-installer
+  get_url:
+    url: "{{ cuda_toolkit_installer_script }}"
+    dest: "/export/cuda-toolkit-installer"
+    mode: 0755
+    checksum: md5:33e1bd980e91af4e55f3ef835c103f9b
+
+- name: Download cuda-patch-installer
+  get_url:
+    url: "{{ cuda_toolkit_patch_script }}"
+    dest: "/export/cuda-patch-installer"
+    mode: 0755
+    checksum: md5:09adbda67db5267a7d4444fb5173f182
+
+- name: Install nvidia-driver
+  shell: "sh /export/nvidia-driver-installer --silent"
+
+- name: Install cuda-toolkit
+  shell: "sh /export/cuda-toolkit-installer --toolkit --samples --silent"
+
+- name: Install cuda-patch
+  shell: "sh /export/cuda-patch-installer --silent --accept-eula"

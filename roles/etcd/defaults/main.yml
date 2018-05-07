@@ -1,0 +1,6 @@
+---
+etcd_initial_cluster:
+  exp: "etcd-10.196.36.130=http://10.196.36.130:2380"
+  prod: "etcd-172.20.189.20=http://172.20.189.20:2380,etcd-172.20.189.21=http://172.20.189.21:2380,etcd-172.20.179.201=http://172.20.179.201:2380"
+
+etcd_data_dir: "/export/Data/etcd"

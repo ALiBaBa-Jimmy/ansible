@@ -1,0 +1,25 @@
+[Unit]
+Description=kube-controller-manager: The Kubernetes Controller Manager
+Documentation=http://kubernetes.io/docs/
+After=etcd.service
+After=kube-apiserver.service
+Requires=etcd.service
+Requires=kube-apiserver.service
+
+[Service]
+WorkingDirectory={{ kubernetes_dir_symlink }}
+EnvironmentFile={{ kubernetes_dir_symlink }}/etc/config
+EnvironmentFile={{ kubernetes_dir_symlink }}/etc/controller-manager
+ExecStart={{ kubernetes_dir_symlink }}/bin/kube-controller-manager \
+    --feature-gates=DevicePlugins=true,PersistentLocalVolumes=true,VolumeScheduling=true,MountPropagation=true,PVCProtection=true,ExpandPersistentVolumes=true \
+    --service-account-private-key-file={{ kubernetes_dir_symlink }}/etc/service_account_key.pem \
+    --root-ca-file={{ kubernetes_dir_symlink }}/etc/ca.crt \
+    $KUBE_LOGTOSTDERR \
+    $KUBE_LOG_LEVEL \
+    $KUBE_MASTER \
+    $KUBE_CONTROLLER_MANAGER_ARGS
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

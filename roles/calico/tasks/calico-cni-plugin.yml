@@ -1,0 +1,27 @@
+---
+- name: Create directories for Calico CNI Plugins
+  raw: "/bin/mkdir -p {{ cni_bin_dir }} {{ cni_etc_net_dir }}"
+
+- name: Download Calico CNI Plugin binaries to cni directory
+  unarchive:
+    src: "{{ calico_cni_url }}"
+    dest: "{{ cni_bin_dir }}"
+    mode: 0755
+    remote_src: yes
+
+- name: Download Standard CNI Loopback Plugin
+  unarchive:
+    src: "{{ std_cni_loopback_plugin_url }}"
+    dest: "{{ cni_bin_dir }}"
+    mode: 0755
+    remote_src: yes
+
+- name: Create configure file for Calico CNI Plugin from template
+  template:
+    src: configs/10-calico.conf
+    dest: "{{ cni_etc_net_dir }}/"
+
+- name: Create calico kubeconfig from template
+  template:
+    src: configs/kubeconfig-calico
+    dest: "{{ calico_kubeconfig_path }}"

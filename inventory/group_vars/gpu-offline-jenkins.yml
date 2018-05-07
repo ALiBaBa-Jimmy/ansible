@@ -1,0 +1,10 @@
+---
+
+motd_banner: |
+  GPU Off-Line Jenkins Server
+
+users:
+  - zhaozhiyong5
+
+sudoers:
+  - zhaozhiyong5

@@ -1,0 +1,8 @@
+---
+nvidia_driver_installer: http://storage.jd.local/cluster-deps/nvidia-diag-driver-local-repo-rhel7-384.111-1.0-1.x86_64.rpm
+dkms_installer: http://storage.jd.local/cluster-deps/dkms-2.4.0.rpm
+cuda_toolkit_installer: http://storage.jd.local/cluster-deps/cuda-repo-rhel7-9-0-local-9.0.176-1.x86_64.rpm
+
+nvidia_installer_script: http://storage.jd.local/cluster-deps/NVIDIA-Linux-x86_64-390.42.run
+cuda_toolkit_installer_script: http://storage.jd.local/cluster-deps/cuda_8.0.61_375.26_linux-run
+cuda_toolkit_patch_script: http://storage.jd.local/cluster-deps/cuda_8.0.61.2_linux-run

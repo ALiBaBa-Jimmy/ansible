@@ -1,0 +1,39 @@
+---
+kubernetes_install_base_dir: /export/servers
+kubernetes_version: 1.9.2
+kubernetes_dir: "{{ kubernetes_install_base_dir }}/kubernetes-server-{{ kubernetes_version }}"
+kubernetes_dir_symlink: "{{ kubernetes_install_base_dir }}/kubernetes-server"
+kubernetes_configure_dir: "{{ kubernetes_dir_symlink }}/etc"
+kubernetes_binary_dir: "{{ kubernetes_dir_symlink }}/bin"
+kubernetes_master_password_tab_path: "{{ kubernetes_dir_symlink }}/etc/password-tab"
+kubernetes_master_token_tab_path: "{{ kubernetes_dir_symlink }}/etc/token-tab"
+kubernetes_url: "http://storage.jd.local/cluster-deps/kubernetes-server-{{ kubernetes_version }}.tar.gz"
+etcd_servers:
+  exp: "http://10.196.36.130:2379"
+  prod: "http://172.20.189.20:2379,http://172.20.189.21:2379,http://172.20.179.201:2379"
+kubernetes_master:
+  exp: "http://cloud-master.exp.ovs.jd.local"
+  prod: "http://cloud-master.prod.ovs.jd.local"
+
+cni_dir: /opt/cni
+cni_bin_dir: "{{ cni_dir }}/bin"
+cni_etc_dir: "/etc/cni"
+cni_etc_net_dir: "{{ cni_etc_dir }}/net.d"
+calico_cni_url: http://storage.jd.local/cluster-deps/calico-cni-plugin-2.0.tar.gz
+std_cni_loopback_plugin_url: http://storage.jd.local/cluster-deps/std-cni-plugin-loopback-v0.3.0.tar.gz
+
+calico_kubeconfig_path: "{{ cni_etc_dir }}/kubeconfig-calico"
+calico_ipv4_pool:
+  exp: "20.0.0.0/16"
+  prod: "20.100.0.0/16"
+calico_kubernetes_server_ip_range:
+  exp: "20.254.0.0/16"
+  prod: "20.254.0.0/16"
+
+cluster_dns:
+  exp: "20.254.254.254"
+  prod: "20.254.254.254"
+
+cluster_domain:
+  exp: "exp.zephon.jd.local"
+  prod: "prod.zephon.jd.local"

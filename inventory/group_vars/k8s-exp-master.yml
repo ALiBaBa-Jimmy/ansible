@@ -1,0 +1,10 @@
+---
+
+motd_banner: |
+  Zephon Cloud - Kubernetes Master for Experimental Environment
+
+users:
+  - zhaozhiyong5
+
+sudoers:
+  - zhaozhiyong5

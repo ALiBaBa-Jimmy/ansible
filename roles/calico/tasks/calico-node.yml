@@ -1,0 +1,30 @@
+---
+- name: Create calico runtime directory
+  file:
+    path: /var/run/calico
+    state: directory
+
+- name: Create calico log directory
+  file:
+    path: /var/log/calico
+    state: directory
+
+- name: Create calico-node.service from template
+  template:
+    src: services/calico-node.service
+    dest: /usr/lib/systemd/system/calico-node.service
+    force: yes
+
+- name: Systemd reload
+  systemd:
+    daemon_reload: yes
+
+- name: Enable calico-node
+  systemd:
+    name: calico-node
+    enabled: yes
+
+- name: Start calico-node
+  systemd:
+    name: calico-node
+    state: restarted

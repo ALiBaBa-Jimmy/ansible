@@ -1,0 +1,13 @@
+---
+- name: Remove all built-in CentOS yum repository
+  raw: "/bin/rm -f {{ repository_dir }}/CentOS*"
+
+- name: Install CentOS yum repository of mirror.jd.com
+  get_url:
+    url: "{{ centos_internal_repo_file }}"
+    dest: "{{ repository_dir }}/"
+
+- name: Do yum clean
+  raw: "yum clean all"
+  args:
+    executable: /bin/bash

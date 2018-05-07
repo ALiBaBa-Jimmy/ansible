@@ -1,0 +1,116 @@
+---
+- name: Stop kubelet
+  systemd:
+    name: kubelet
+    state: stopped
+  ignore_errors: yes
+
+- name: Disable kubelet
+  systemd:
+    name: kubelet
+    enabled: no
+  ignore_errors: yes
+
+- name: Remove kubelet.service
+  file:
+    path: /usr/lib/systemd/system/kubelet.service
+    state: absent
+
+- name: Stop kubernetes proxy
+  systemd:
+    name: kube-proxy
+    state: stopped
+  ignore_errors: yes
+
+- name: Disable kubernetes proxy
+  systemd:
+    name: kube-proxy
+    enabled: no
+  ignore_errors: yes
+
+- name: Remove kube-proxy.service
+  file:
+    path: /usr/lib/systemd/system/kube-proxy.service
+    state: absent
+
+- name: Remove symlink to kubernetes-server installed directory
+  file:
+    path: "{{ kubernetes_dir_symlink }}"
+    state: absent
+
+- name: Remove kubernetes-server installed directory
+  file:
+    path: "{{ kubernetes_dir }}"
+    state: absent
+
+- name: Unarchive kubernetes-server to target directory
+  unarchive:
+    src: "{{ kubernetes_url }}"
+    dest: "{{ kubernetes_install_base_dir }}"
+    remote_src: yes
+
+- name: Create symlink for kubernetes-server installed directory
+  file:
+    src: "{{ kubernetes_dir }}"
+    dest: "{{ kubernetes_dir_symlink }}"
+    state: link
+
+- name: Create configure directory
+  file:
+    path: "{{ kubernetes_configure_dir }}"
+    state: directory
+    mode: 0700
+
+- name: Create common configure file from template
+  template:
+    src: configs/config
+    dest: "{{ kubernetes_configure_dir }}"
+
+- name: Create kubelet configure file from template
+  template:
+    src: configs/kubelet
+    dest: "{{ kubernetes_configure_dir }}"
+
+- name: Create kubeconfig file for kubelet
+  template:
+    src: configs/kubeconfig-kubelet
+    dest: "{{ kubernetes_configure_dir }}"
+
+- name: Create proxy configure file from template
+  template:
+    src: configs/proxy
+    dest: "{{ kubernetes_configure_dir }}"
+
+- name: Create kubelet.service for systemd from template
+  template:
+    src: services/kubelet.service
+    dest: /usr/lib/systemd/system/kubelet.service
+
+- name: Create kube-proxy.service for systemd from template
+  template:
+    src: services/kube-proxy.service
+    dest: /usr/lib/systemd/system/kube-proxy.service
+
+- name: Systemd reload
+  systemd:
+    daemon_reload: yes
+
+- name: Enable kubelet
+  systemd:
+    name: kubelet
+    enabled: yes
+
+- name: Enable kube-proxy
+  systemd:
+    name: kube-proxy
+    enabled: yes
+
+- name: Start kubelet
+  systemd:
+    name: kubelet
+    state: started
+
+- name: Start kube-proxy
+  systemd:
+    name: kube-proxy
+    state: started

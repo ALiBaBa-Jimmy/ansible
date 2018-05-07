@@ -1,0 +1,22 @@
+---
+- name: Create directory for user home
+  file:
+    path={{ home_directory }}
+    mode=0755
+    state=directory
+
+- name: Create user and add to user group
+  user:
+    name={{ item }}
+    group={{ user_group }}
+    createhome=yes
+    home={{ home_directory }}/{{ item }}
+
+- name: Unlock newly created user with a random password
+  shell: passwd --status {{ item }} | grep -w PS || date +%s | sha256sum | base64 | head -c 32 | passwd --stdin {{ item }}
+
+- name: Setup authorized_keys for user
+  authorized_key:
+    user={{ item }}
+    key='{{ all_users[item] }}'
+    manage_dir=yes

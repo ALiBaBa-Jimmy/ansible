@@ -1,0 +1,2 @@
+---
+pod_infra_container_image: mirror.jd.com/kubernetes-infr-images/pause-amd64:3.0
